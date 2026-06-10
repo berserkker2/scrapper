@@ -99,7 +99,7 @@
         const supabaseUrl = 'https://wiwlyavntcbqpiprallw.supabase.co';
         const supabaseKey = 'sb_publishable_lpG_U-_iSRfnq3UZRZBefA_yZWZiy7x'; 
         
-        // Inicialização correta sem conflito global no Firefox
+        // Corrigido para evitar o erro de redeclaração global do Firefox
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         window.onload = function() {
@@ -158,7 +158,7 @@
 
             for (let loja of lojas) {
                 try {
-                    // Rota atualizada para apontar para a API de scraping na Vercel
+                    // CORREÇÃO CRUCIAL: Adicionado /api/scrape no fim do URL
                     const res = await fetch('https://scrapper-lyart.vercel.app/api/scrape', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
