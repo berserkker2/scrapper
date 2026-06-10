@@ -1,18 +1,11 @@
 {
   "version": 2,
-  "cleanUrls": true,
+  "builds": [
+    { "src": "api/scrape.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
   "routes": [
-    {
-      "src": "/api/scrape",
-      "methods": ["POST", "OPTIONS"],
-      "dest": "/api/scrape.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/api/scrape", "dest": "api/scrape.js" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
