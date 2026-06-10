@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PriceTrack - Comparador Dinâmico</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #333; }
+        header { background-color: #1e293b; color: #ffffff; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 22px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 25px; }
+        .card-title { margin-top: 0; margin-bottom: 20px; font-size: 18px; color: #0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .btn { background-color: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .btn:hover { background-color: #2563eb; }
+        .btn-secondary { background-color: #64748b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th { background-color: #f8fafc; color: #64748b; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+        .product-img { width: 50px; height: 50px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .price-tag { font-weight: 600; color: #16a34a; }
+        .badge { background-color: #e2e8f0; color: #334155; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🔍 PriceTrack Admin (Vercel)</h1>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">📦 Criar Novo Produto Geral</h2>
+            <div class="form-group">
+                <label for="product-name">Nome do Produto</label>
+                <input type="text" id="product-name" class="form-control" placeholder="Ex: PlayStation 5 Slim">
+            </div>
+            <button class="btn" onclick="saveProduct()">Criar Produto</button>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">🔗 Associar Loja & Seletores (Inspect)</h2>
+            <div class="form-group">
+                <label for="select-product">Selecionar Produto Pai</label>
+                <select id="select-product" class="form-control" onchange="loadPricesTable()"></select>
+            </div>
+            <div class="form-group">
+                <label for="shop-name">Nome da Loja</label>
+                <input type="text" id="shop-name" class="form-control" placeholder="Ex: Worten">
+            </div>
+            <div class="form-group">
+                <label for="shop-url">URL Completo</label>
+                <input type="url" id="shop-url" class="form-control" placeholder="https://www.worten.pt/...">
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="shop-selector-price">Seletor CSS Preço</label>
+                    <input type="text" id="shop-selector-price" class="form-control" placeholder="Ex: .w-product-price__current">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="shop-selector-image">Seletor CSS Imagem</label>
+                    <input type="text" id="shop-selector-image" class="form-control" placeholder="Ex: meta[property='og:image']">
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="saveShopLink()">Vincular Loja</button>
+        </div>
+
+        <div class="card">
+            <div class="controls-row">
+                <h2 class="card-title" style="margin:0; border:none;">📊 Preços em Tempo Real</h2>
+                <div>
+                    <select id="sort-order" class="form-control" style="width: auto;" onchange="sortPrices()">
+                        <option value="asc">Preço Mais Baixo</option>
+                        <option value="desc">Preço Mais Alto</option>
+                    </select>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Imagem</th>
+                        <th>Loja</th>
+                        <th>Preço</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://wiwlyavntcbqpiprallw.supabase.co';
+        const supabaseKey = 'sb_publishable_lpG_U-_iSRfnq3UZRZBefA_yZWZiy7x'; 
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        window.onload = function() {
+            loadProductsDropdown();
+        };
+
+        async function loadProductsDropdown() {
+            const selectElement = document.getElementById('select-product');
+            let { data: produtos } = await supabase.from('produtos').select('*').order('nome', { ascending: true });
+            
+            selectElement.innerHTML = '<option value="">-- Escolha um produto --</option>';
+            if(produtos) {
+                produtos.forEach(prod => {
+                    selectElement.innerHTML += `<option value="${prod.id}">${prod.nome}</option>`;
+                });
+            }
+        }
+
+        async function saveProduct() {
+            const name = document.getElementById('product-name').value.trim();
+            if(!name) return alert('Insira o nome.');
+            const { error } = await supabase.from('produtos').insert([{ nome: name }]);
+            if (!error) { alert('Criado!'); document.getElementById('product-name').value = ''; loadProductsDropdown(); }
+        }
+
+        async function saveShopLink() {
+            const id = document.getElementById('select-product').value;
+            const loja = document.getElementById('shop-name').value.trim();
+            const url = document.getElementById('shop-url').value.trim();
+            const p = document.getElementById('shop-selector-price').value.trim();
+            const img = document.getElementById('shop-selector-image').value.trim();
+
+            if(!id || !loja || !url || !p || !img) return alert('Preencha tudo.');
+
+            const { error } = await supabase.from('links_lojas').insert([{
+                produto_id: parseInt(id), nome_loja: loja, url_produto: url, seletor_preco: p, seletor_imagem: img
+            }]);
+            if(!error) { alert('Vinculado!'); loadPricesTable(); }
+        }
+
+        // FUNÇÃO REAL QUE CHAMA O SCRAPER DA VERCEL
+        async function loadPricesTable() {
+            const id = document.getElementById('select-product').value;
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '<tr><td colspan="4">A carregar preços em tempo real (Scraping)...</td></tr>';
+
+            if(!id) { tableBody.innerHTML = ''; return; }
+
+            // 1. Busca os links das lojas guardados no Supabase para este produto
+            let { data: lojas } = await supabase.from('links_lojas').select('*').eq('produto_id', id);
+
+            if(!lojas || lojas.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4">Nenhuma loja vinculada a este produto.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = '';
+
+            // 2. Para cada loja, faz o pedido ao nosso scraper da Vercel
+            for (let loja of lojas) {
+                try {
+                    const res = await fetch('/api/scrape', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: loja.url_produto,
+                            seletor_preco: loja.seletor_preco,
+                            seletor_imagem: loja.seletor_imagem
+                        })
+                    });
+                    const dados = await res.json();
+
+                    if(dados.sucesso) {
+                        tableBody.innerHTML += `
+                            <tr data-price="${dados.preco}">
+                                <td><img src="${dados.imagem}" class="product-img"></td>
+                                <td><span class="badge">${loja.nome_loja}</span></td>
+                                <td><span class="price-tag">${dados.originalPreco || dados.preco + ' €'}</span></td>
+                                <td><a href="${loja.url_produto}" class="btn" style="padding:5px 10px; font-size:12px;" target="_blank">Ir para a Loja ↗</a></td>
+                            </tr>
+                        `;
+                    }
+                } catch (err) {
+                    console.error('Erro ao raspar a loja ' + loja.nome_loja, err);
+                }
+            }
+            sortPrices();
+        }
+
+        function sortPrices() {
+            const tableBody = document.getElementById('table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            const order = document.getElementById('sort-order').value;
+
+            rows.sort((a, b) => {
+                const priceA = parseFloat(a.getAttribute('data-price')) || 0;
+                const priceB = parseFloat(b.getAttribute('data-price')) || 0;
+                return order === 'asc' ? priceA - priceB : priceB - priceA;
+            });
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+    </script>
+</body>
+</html>
