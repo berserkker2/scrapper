@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PriceTrack - Comparador de Preços Dinâmico</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        header {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: block;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #0f172a;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        /* Forms styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .form-col {
+            display: table-cell;
+            padding-right: 15px;
+            vertical-align: bottom;
+        }
+        .form-col:last-child {
+            padding-right: 0;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: #64748b;
+        }
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        /* Tables & Lists */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #64748b;
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            background-color: #e2e8f0;
+            color: #334155;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .price-tag {
+            font-weight: 600;
+            color: #16a34a;
+            font-size: 15px;
+        }
+
+        /* Technical code blocks */
+        pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .section-desc {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🔍 PriceTrack Admin</h1>
+        <div>
+            <span class="badge" style="background-color: #3b82f6; color: white;">GitHub Pages Ready</span>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- 1. ADICIONAR NOVO PRODUTO -->
+        <div class="card">
+            <h2 class="card-title">📦 Criar Novo Produto Geral</h2>
+            <p class="section-desc">Cria a entidade principal (ex: "Smart TV LG 55"). Depois poderás associar várias lojas a ela.</p>
+            <div class="form-group">
+                <label for="product-name">Nome do Produto</label>
+                <input type="text" id="product-name" class="form-control" placeholder="Ex: PlayStation 5 Slim">
+            </div>
+            <button class="btn" onclick="saveProduct()">Criar Produto</button>
+        </div>
+
+        <!-- 2. ASSOCIAR LOJA E SELETORES (INSPECT ELEMENT) -->
+        <div class="card">
+            <h2 class="card-title">🔗 Associar Loja & Seletores (Inspect)</h2>
+            <p class="section-desc">Insere o link direto da página e os seletores CSS que encontraste ao inspecionar o elemento do preço e da imagem.</p>
+            
+            <div class="form-group">
+                <label for="select-product">Selecionar Produto Pai</label>
+                <select id="select-product" class="form-control">
+                    <option value="">-- Escolha um produto criado --</option>
+                    <option value="1">PlayStation 5 Slim</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="shop-name">Nome da Loja</label>
+                <input type="text" id="shop-name" class="form-control" placeholder="Ex: Worten, Fnac, Radio Popular">
+            </div>
+
+            <div class="form-group">
+                <label for="shop-url">URL Completo da Página do Produto</label>
+                <input type="url" id="shop-url" class="form-control" placeholder="https://www.worten.pt/produtos/...">
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="shop-selector-price">Seletor CSS do Preço (Inspect)</label>
+                    <input type="text" id="shop-selector-price" class="form-control" placeholder="Ex: .w-product-price__current ou span.price">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="shop-selector-image">Seletor CSS da Imagem (Inspect)</label>
+                    <input type="text" id="shop-selector-image" class="form-control" placeholder="Ex: meta[property='og:image'] ou img.main-prod">
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="saveShopLink()">Vincular Loja</button>
+        </div>
+
+        <!-- 3. PAINEL DE VISUALIZAÇÃO E COMPARAÇÃO -->
+        <div class="card">
+            <div class="controls-row">
+                <h2 class="card-title" style="margin: 0; border: none; padding: 0;">📊 Painel Comparador de Preços</h2>
+                <div>
+                    <label for="sort-order" style="font-size: 13px; font-weight: 500; margin-right: 5px;">Ordenar por Preço:</label>
+                    <select id="sort-order" class="form-control" style="display: inline-block; width: auto; padding: 5px 10px;" onchange="sortPrices()">
+                        <option value="asc">Mais Baixo primeiro (Ascendente)</option>
+                        <option value="desc">Mais Alto primeiro (Descendente)</option>
+                    </select>
+                </div>
+            </div>
+
+            <table id="prices-table">
+                <thead>
+                    <tr>
+                        <th>Imagem</th>
+                        <th>Produto</th>
+                        <th>Loja</th>
+                        <th>Preço Atual</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Exemplo estático simulando os dados reais vindos da BD + Scraper -->
+                    <tr data-price="449.99">
+                        <td><img src="https://placehold.co/100x100?text=PS5" class="product-img" alt="Produto"></td>
+                        <td><strong>PlayStation 5 Slim</strong></td>
+                        <td><span class="badge">Worten</span></td>
+                        <td><span class="price-tag">449,99 €</span></td>
+                        <td><a href="#" class="btn" style="padding: 5px 10px; font-size: 12px;" target="_blank">Ir para a Loja ↗</a></td>
+                    </tr>
+                    <tr data-price="459.00">
+                        <td><img src="https://placehold.co/100x100?text=PS5" class="product-img" alt="Produto"></td>
+                        <td><strong>PlayStation 5 Slim</strong></td>
+                        <td><span class="badge">Fnac</span></td>
+                        <td><span class="price-tag">459,00 €</span></td>
+                        <td><a href="#" class="btn" style="padding: 5px 10px; font-size: 12px;" target="_blank">Ir para a Loja ↗</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // Funções de demonstração lógica frontend (Manipulação de DOM e Ordenação)
+        function sortPrices() {
+            const tableBody = document.getElementById('table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            const order = document.getElementById('sort-order').value;
+
+            rows.sort((a, b) => {
+                const priceA = parseFloat(a.getAttribute('data-price'));
+                const priceB = parseFloat(b.getAttribute('data-price'));
+                return order === 'asc' ? priceA - priceB : priceB - priceA;
+            });
+
+            // Re-inserir ordenado
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+
+        function saveProduct() {
+            const name = document.getElementById('product-name').value;
+            if(!name) return alert('Insira o nome do produto');
+            alert('Lógica de Integração: Aqui irás disparar o insert para a tabela "produtos" do Supabase usando a sua SDK!');
+        }
+
+        function saveShopLink() {
+            alert('Lógica de Integração: Aqui irás guardar o URL e os Seletores CSS na tabela "links_lojas" associando ao ID do produto.');
+        }
+    </script>
+</body>
+</html>
