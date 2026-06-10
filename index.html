@@ -98,7 +98,9 @@
     <script>
         const supabaseUrl = 'https://wiwlyavntcbqpiprallw.supabase.co';
         const supabaseKey = 'sb_publishable_lpG_U-_iSRfnq3UZRZBefA_yZWZiy7x'; 
-        const supabase = _supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Inicialização correta sem conflito global no Firefox
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         window.onload = function() {
             loadProductsDropdown();
@@ -106,7 +108,7 @@
 
         async function loadProductsDropdown() {
             const selectElement = document.getElementById('select-product');
-            let { data: produtos } = await supabase.from('produtos').select('*').order('nome', { ascending: true });
+            let { data: produtos } = await supabaseClient.from('produtos').select('*').order('nome', { ascending: true });
             
             selectElement.innerHTML = '<option value="">-- Escolha um produto --</option>';
             if(produtos) {
@@ -119,7 +121,7 @@
         async function saveProduct() {
             const name = document.getElementById('product-name').value.trim();
             if(!name) return alert('Insira o nome.');
-            const { error } = await supabase.from('produtos').insert([{ nome: name }]);
+            const { error } = await supabaseClient.from('produtos').insert([{ nome: name }]);
             if (!error) { alert('Criado!'); document.getElementById('product-name').value = ''; loadProductsDropdown(); }
         }
 
@@ -132,13 +134,12 @@
 
             if(!id || !loja || !url || !p || !img) return alert('Preencha tudo.');
 
-            const { error } = await supabase.from('links_lojas').insert([{
+            const { error } = await supabaseClient.from('links_lojas').insert([{
                 produto_id: parseInt(id), nome_loja: loja, url_produto: url, seletor_preco: p, seletor_imagem: img
             }]);
             if(!error) { alert('Vinculado!'); loadPricesTable(); }
         }
 
-        // FUNÇÃO REAL QUE CHAMA O SCRAPER DA VERCEL
         async function loadPricesTable() {
             const id = document.getElementById('select-product').value;
             const tableBody = document.getElementById('table-body');
@@ -146,8 +147,7 @@
 
             if(!id) { tableBody.innerHTML = ''; return; }
 
-            // 1. Busca os links das lojas guardados no Supabase para este produto
-            let { data: lojas } = await supabase.from('links_lojas').select('*').eq('produto_id', id);
+            let { data: lojas } = await supabaseClient.from('links_lojas').select('*').eq('produto_id', id);
 
             if(!lojas || lojas.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="4">Nenhuma loja vinculada a este produto.</td></tr>';
@@ -156,10 +156,10 @@
 
             tableBody.innerHTML = '';
 
-            // 2. Para cada loja, faz o pedido ao nosso scraper da Vercel
             for (let loja of lojas) {
                 try {
-                    const res = await fetch('https://scrapper-lyart.vercel.app/', {
+                    // Rota atualizada para apontar para a API de scraping na Vercel
+                    const res = await fetch('https://scrapper-lyart.vercel.app/api/scrape', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
