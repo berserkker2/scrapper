@@ -159,7 +159,7 @@
             // 2. Para cada loja, faz o pedido ao nosso scraper da Vercel
             for (let loja of lojas) {
                 try {
-                    const res = await fetch('/api/scrape', {
+                    const res = await fetch('https://O-TEU-LINK-DA-VERCEL.vercel.app/api/scrape', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
